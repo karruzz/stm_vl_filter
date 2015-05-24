@@ -8,7 +8,7 @@
 
 #include "adc.h"
 
-void SoundRecordInit()
+void SoundRecorderInit()
 {
 	// adc init
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 | RCC_APB2Periph_GPIOA , ENABLE);
@@ -58,9 +58,13 @@ void SoundRecordInit()
 
 void ADC1_IRQHandler(void)
 {
+	//portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+
     if (ADC_GetITStatus(ADC1, ADC_IT_EOC)) {
     	InBuf[Sample] = ADC_GetConversionValue(ADC1);
     	Sample = (++Sample) % AUDIOBUFSIZE;
         ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
     };
+
+	//portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 }

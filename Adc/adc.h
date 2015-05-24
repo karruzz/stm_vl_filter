@@ -10,15 +10,15 @@
 #define ADC_ADC_H_
 
 #include "stm32f10x.h"
-#include "LowPass.h"
+#include "config.h"
 
-#define AUDIOBUFSIZE 256
+#include "FreeRTOS.h"
+#include "task.h"
 
 uint16_t InBuf [AUDIOBUFSIZE];
 
 int Sample;
-//char FilterOn;
 
-void SoundRecordInit(void);
+void SoundRecorderInit(void);
 
 #endif /* ADC_ADC_H_ */

@@ -17,59 +17,78 @@
 #include "FFT.h"
 #include "LowPass.h"
 
-typedef enum { LOW, HIGH } Half;
-Half RecordingHalf;
+/*
+#include "FreeRTOS.h"
+#include "task.h"
+*/
+//#include "queue.h"
 
 int audioplayerHalf;
 int audioplayerWhole;
 
 char hist[MAX_X];
 
-int main(void)
+/*void Filtering(void *pvParameters )
 {
-	int i;
 	int filteringSample = 0;
-	int displayUpdateCounter;
-	int left;
-
-	Half lastHalf;
-	Nokia5110Init();
-
-	SoundRecordInit();
-	SoundPlayerInit();
-	Timer44kHzInit();
-
-	while(1) {
-		if (IsPlaying == 0 && filteringSample > AUDIOBUFSIZE / 2) SoundPlayerStart();
-
-		while (Sample - filteringSample > 3 || (filteringSample > Sample && Sample + 256 - filteringSample > 3))
+    for (;;) {
+		while (Sample - filteringSample > 3 || (filteringSample > Sample && Sample + AUDIOBUFSIZE - filteringSample > 3))
 		{
 			//OutBuf[filteringSample] = FilterLP(InBuf[filteringSample]);
 			OutBuf[filteringSample] = InBuf[filteringSample];
 			filteringSample = (++filteringSample) % AUDIOBUFSIZE;
 	    	if (filteringSample > AUDIOBUFSIZE / 2) RecordingHalf = HIGH; else RecordingHalf = LOW;
 		}
+    }
+}*/
+
+int main(void)
+{
+//	NVIC_PriorityGroupConfig( NVIC_PriorityGroup_4 );
+
+	int i;
+	int filteringSample = 0;
+	int displayUpdateCounter;
+	uint16_t x;
+	Boolean GoingToView = FALSE;
+	FFTIsFull = FALSE;
+	FFTIsMagnitudeReady = FALSE;
+
+	Nokia5110Init();
+
+	SoundRecorderInit();
+	SoundPlayerInit();
+	Timer44kHzInit();
+
+	while (Sample < PLAYERDELAY);
+	SoundPlayerStart();
+
+/*    xTaskCreate(Filtering, (signed char*)"filtering", 500, NULL, tskIDLE_PRIORITY + 4, NULL);
+
+    vTaskStartScheduler();*/
+
+	while(1) {
+		while (Sample - filteringSample > 3 || (filteringSample > Sample && Sample + AUDIOBUFSIZE - filteringSample > 3))
+		{
+			//OutBuf[filteringSample] = FilterLP(InBuf[filteringSample]);
+			x = InBuf[filteringSample];
+			OutBuf[filteringSample] = x;
+			if (FFTIsFull == FALSE && GoingToView == FALSE) FFTAdd(x >> 5);
+			filteringSample = (++filteringSample) % AUDIOBUFSIZE;
+		}
 
 		displayUpdateCounter++;
-		if (displayUpdateCounter < 10000 || lastHalf == RecordingHalf) continue;
-
+		if (displayUpdateCounter < 5000) continue;
 		displayUpdateCounter = 0;
-		if (RecordingHalf == HIGH) left = 0; else left = AUDIOBUFSIZE / 2;
 
-		for (i = 0; i < FFTSIZE; i++)
-		{
-			ReSignal[i] = OutBuf[i + left] >> 5;
-			ImSignal[i] = 0;
+		if (FFTIsFull == TRUE) {
+			FFTCalculate();
+			GoingToView = TRUE;
+			continue;
 		}
 
-		for (i = 0; i < 64; i++)
-		{
-			hist[i] = Magnitude[i]>>3;
-		}
-
-		FFTCalculate();
-		Nokia5110DrawHist(hist);
-		lastHalf = RecordingHalf;
+		Nokia5110DrawHist(Magnitude);
+		GoingToView = FALSE;
 	}
 }
 

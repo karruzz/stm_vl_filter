@@ -10,14 +10,17 @@
 #define FILTERS_FFT_H_
 
 #include "stm32f10x.h"
-
-#define FFTSIZE 128
-#define M 7
+#include "config.h"
 
 int16_t ReSignal[FFTSIZE];
 int16_t ImSignal[FFTSIZE];
-uint16_t Magnitude[FFTSIZE];
+uint8_t Magnitude[FFTSIZE];
+
+Boolean FFTIsFull;
+Boolean FFTIsMagnitudeReady;
 
 void FFTCalculate(void);
+void FFTAdd(int);
 
 #endif /* FILTERS_FFT_H_ */
+

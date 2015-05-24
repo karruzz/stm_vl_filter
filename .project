@@ -30,6 +30,11 @@
 			<location>D:/Distributives/Programming/STM/Include/CMSIS_stm</location>
 		</link>
 		<link>
+			<name>FreeRTOS</name>
+			<type>2</type>
+			<location>D:/Distributives/Programming/FreeRTOS/FreeRTOS_Min</location>
+		</link>
+		<link>
 			<name>STM32F10x_StdPeriph_Driver</name>
 			<type>2</type>
 			<location>D:/Distributives/Programming/STM/Include/STM32F10x_StdPeriph_Lib_V3.5.0/Libraries/STM32F10x_StdPeriph_Driver</location>

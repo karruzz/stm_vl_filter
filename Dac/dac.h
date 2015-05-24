@@ -10,8 +10,7 @@
 #define DAC_DAC_H_
 
 #include "stm32f10x.h"
-
-#define AUDIOBUFSIZE 256
+#include "config.h"
 
 uint16_t OutBuf [AUDIOBUFSIZE];
 extern int audioplayerHalf;
