@@ -17,7 +17,6 @@ int16_t ImSignal[FFTSIZE];
 uint8_t Magnitude[FFTSIZE];
 
 Boolean FFTIsFull;
-Boolean FFTIsMagnitudeReady;
 
 void FFTCalculate(void);
 void FFTAdd(int);

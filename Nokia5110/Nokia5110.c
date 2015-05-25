@@ -125,6 +125,13 @@ static void lcdwrite(enum writeMode mode, char message)
 	  GPIO_WriteBit(GPIOB, SOFT_SS, Bit_SET);
 }
 
+static void fastlcdwrite(char message)
+{
+	SPI_I2S_SendData(SPI , message);
+	while (SPI_I2S_GetFlagStatus(SPI , SPI_I2S_FLAG_RXNE) == RESET);
+	SPI_I2S_ReceiveData(SPI);
+}
+
 void Nokia5110Init(void)
 {
 	spiInit(SPI);
@@ -189,15 +196,18 @@ void Nokia5110DrawHist(const char *pointY)
   for(i=0; i < MAX_X; i++)
 	  boundaryHist[i] = MAX_Y / 8 - 1 - pointY[i] / 8;
 
+  GPIO_WriteBit(GPIOB, SOFT_SS, Bit_RESET);
+  GPIO_WriteBit(GPIOB, DC_PIN, Bit_SET);
 
   for(i = 0; i < MAX_Y / 8; i++)
 	for(j = 0; j < MAX_X; j++){
 	{
-		if(i < boundaryHist[j]) lcdwrite(DATA, 0);
-		else if (i == boundaryHist[j]) lcdwrite(DATA, ~(0xFF >> (pointY[j] % 8)));
-		else lcdwrite(DATA, 0xFF);
+		if(i < boundaryHist[j]) fastlcdwrite(0);
+		else if (i == boundaryHist[j]) fastlcdwrite( ~(0xFF >> (pointY[j] % 8)));
+		else fastlcdwrite(0xFF);
 	}
   }
+  GPIO_WriteBit(GPIOB, SOFT_SS, Bit_SET);
 }
 
 void Nokia5110DrawImage(const char *ptr)

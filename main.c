@@ -47,12 +47,10 @@ int main(void)
 //	NVIC_PriorityGroupConfig( NVIC_PriorityGroup_4 );
 
 	int i;
-	int filteringSample = 0;
+	unsigned int filteringSample = 0;
 	int displayUpdateCounter;
 	uint16_t x;
-	Boolean GoingToView = FALSE;
-	FFTIsFull = FALSE;
-	FFTIsMagnitudeReady = FALSE;
+	Boolean ReadyToView = FALSE;
 
 	Nokia5110Init();
 
@@ -71,9 +69,7 @@ int main(void)
 		while (Sample - filteringSample > 3 || (filteringSample > Sample && Sample + AUDIOBUFSIZE - filteringSample > 3))
 		{
 			//OutBuf[filteringSample] = FilterLP(InBuf[filteringSample]);
-			x = InBuf[filteringSample];
-			OutBuf[filteringSample] = x;
-			if (FFTIsFull == FALSE && GoingToView == FALSE) FFTAdd(x >> 5);
+			OutBuf[filteringSample] = InBuf[filteringSample];
 			filteringSample = (++filteringSample) % AUDIOBUFSIZE;
 		}
 
@@ -81,14 +77,20 @@ int main(void)
 		if (displayUpdateCounter < 5000) continue;
 		displayUpdateCounter = 0;
 
-		if (FFTIsFull == TRUE) {
+		if (ReadyToView == FALSE)
+		{
+			x = filteringSample;
+			while (FFTIsFull == FALSE) {
+				FFTAdd(OutBuf[x] >> 5);
+				x = (--x) % AUDIOBUFSIZE;
+			}
 			FFTCalculate();
-			GoingToView = TRUE;
+			ReadyToView = TRUE;
 			continue;
 		}
 
+		ReadyToView = FALSE;
 		Nokia5110DrawHist(Magnitude);
-		GoingToView = FALSE;
 	}
 }
 

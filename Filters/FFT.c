@@ -32,7 +32,6 @@ void FFTAdd(int x)
 	if (sample != FFTSIZE) return;
 	sample = 0;
 	FFTIsFull = TRUE;
-	FFTIsMagnitudeReady = FALSE;
 }
 
 static inline int sqrt2(int x)

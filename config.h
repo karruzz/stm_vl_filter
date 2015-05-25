@@ -9,7 +9,7 @@
 #define CONFIG_H_
 
 #define AUDIOBUFSIZE 1024
-#define PLAYERDELAY 512
+#define PLAYERDELAY 768
 
 #define FFTSIZE 128
 #define FFTORDER 7
