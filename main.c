@@ -15,7 +15,6 @@
 #include "adc.h"
 #include "dac.h"
 #include "FFT.h"
-#include "LowPass.h"
 
 /*
 #include "FreeRTOS.h"
@@ -42,6 +41,44 @@ char hist[MAX_X];
     }
 }*/
 
+#define WINDOW 8
+#define DEVIDER (AUDIOBUFSIZE - 1)
+
+int16_t factors[] = { 2, 2, 2, 2, 2, 2, 2, 2 };
+
+static inline uint16_t FIRFilter1(int position)
+{
+	int i = 0;
+	int sum = 0;
+	while (i < WINDOW)
+	{
+		sum += InBuf[(position--) & DEVIDER] * factors[i++];
+	}
+
+	return sum >> 4;
+}
+
+static char boundaryHist[MAX_X];
+static char outBuffer[MAX_X * MAX_Y_OCTETS];
+
+static inline void Nokia5110PrepareHist(const char *pointY)
+{
+	int i;
+	int j;
+
+	for(i = 0; i < MAX_X; i++)
+		boundaryHist[i] = MAX_Y / 8 - 1 - pointY[i] / 8;
+
+	for(i = 0; i < MAX_Y_OCTETS; i++)
+		for(j = 0; j < MAX_X; j++){
+		{
+			if(i < boundaryHist[j]) outBuffer[j+i*MAX_X] = 0;
+			else if (i == boundaryHist[j]) outBuffer[j+i*MAX_X] = ~(0xFF >> (pointY[j] % 8));
+			else outBuffer[j+i*MAX_X] = 0xFF;
+		}
+	}
+}
+
 int main(void)
 {
 //	NVIC_PriorityGroupConfig( NVIC_PriorityGroup_4 );
@@ -50,7 +87,8 @@ int main(void)
 	unsigned int filteringSample = 0;
 	int displayUpdateCounter;
 	uint16_t x;
-	Boolean ReadyToView = FALSE;
+	Boolean FFTReady = FALSE;
+	Boolean HistReady = FALSE;
 
 	Nokia5110Init();
 
@@ -66,31 +104,39 @@ int main(void)
     vTaskStartScheduler();*/
 
 	while(1) {
-		while (Sample - filteringSample > 3 || (filteringSample > Sample && Sample + AUDIOBUFSIZE - filteringSample > 3))
+		while (((Sample - filteringSample) & DEVIDER) > 10)
 		{
-			//OutBuf[filteringSample] = FilterLP(InBuf[filteringSample]);
+			OutBuf[filteringSample] = FIRFilter1(filteringSample);
 			OutBuf[filteringSample] = InBuf[filteringSample];
-			filteringSample = (++filteringSample) % AUDIOBUFSIZE;
+			filteringSample = (++filteringSample) & DEVIDER;
 		}
 
-		displayUpdateCounter++;
+/*		displayUpdateCounter++;
 		if (displayUpdateCounter < 5000) continue;
-		displayUpdateCounter = 0;
+		displayUpdateCounter = 0;*/
 
-		if (ReadyToView == FALSE)
+		if (FFTReady == FALSE)
 		{
 			x = filteringSample;
 			while (FFTIsFull == FALSE) {
-				FFTAdd(OutBuf[x] >> 5);
-				x = (--x) % AUDIOBUFSIZE;
+				FFTAdd(OutBuf[x] >> 4);
+				x = (--x) & DEVIDER;
 			}
 			FFTCalculate();
-			ReadyToView = TRUE;
+			FFTReady = TRUE;
 			continue;
 		}
 
-		ReadyToView = FALSE;
-		Nokia5110DrawHist(Magnitude);
+		if (HistReady == FALSE)
+		{
+			Nokia5110PrepareHist(Magnitude);
+			HistReady = TRUE;
+			continue;
+		}
+
+		FFTReady = FALSE;
+		HistReady = FALSE;
+		Nokia5110DrawHist(outBuffer);
 	}
 }
 

@@ -13,10 +13,6 @@
 #include "config.h"
 
 uint16_t OutBuf [AUDIOBUFSIZE];
-extern int audioplayerHalf;
-extern int audioplayerWhole;
-
-char IsPlaying;
 
 void SoundPlayerInit(void);
 void SoundPlayerStart(void);

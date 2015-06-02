@@ -186,27 +186,17 @@ void Nokia5110Clear(void)
   Nokia5110SetCursor(0, 0);
 }
 
-static char boundaryHist[MAX_X];
-void Nokia5110DrawHist(const char *pointY)
+void Nokia5110DrawHist(const char *points)
 {
   int i;
-  int j;
   Nokia5110SetCursor(0, 0);
-
-  for(i=0; i < MAX_X; i++)
-	  boundaryHist[i] = MAX_Y / 8 - 1 - pointY[i] / 8;
 
   GPIO_WriteBit(GPIOB, SOFT_SS, Bit_RESET);
   GPIO_WriteBit(GPIOB, DC_PIN, Bit_SET);
 
-  for(i = 0; i < MAX_Y / 8; i++)
-	for(j = 0; j < MAX_X; j++){
-	{
-		if(i < boundaryHist[j]) fastlcdwrite(0);
-		else if (i == boundaryHist[j]) fastlcdwrite( ~(0xFF >> (pointY[j] % 8)));
-		else fastlcdwrite(0xFF);
-	}
-  }
+  for(i = 0; i < MAX_Y_OCTETS * MAX_X; i++)
+	  fastlcdwrite(points[i]);
+
   GPIO_WriteBit(GPIOB, SOFT_SS, Bit_SET);
 }
 

@@ -17,8 +17,9 @@
 
 uint16_t InBuf [AUDIOBUFSIZE];
 
-int Sample;
+unsigned int Sample;
 
 void SoundRecorderInit(void);
+uint16_t FIRFilter(int position);
 
 #endif /* ADC_ADC_H_ */

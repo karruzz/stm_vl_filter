@@ -26,6 +26,7 @@
 
 #define MAX_X  84
 #define MAX_Y  48
+#define MAX_Y_OCTETS  (MAX_Y >> 3)
 
 #define CONTRAST  0xB3
 
@@ -48,7 +49,7 @@ void Nokia5110Clear(void);
 
 // 48x84 bitmap image
 void Nokia5110DrawImage(const char *ptr);
-void Nokia5110DrawHist(const char *pointy);
+void Nokia5110DrawHist(const char *points);
 
 void Nokia5110OutChar(unsigned char data);
 void Nokia5110OutString(char *ptr);

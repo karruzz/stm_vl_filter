@@ -10,8 +10,6 @@
 
 void SoundPlayerInit(void)
 {
-	IsPlaying = 0;
-
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1 , ENABLE);
 	DMA_DeInit(DMA1_Channel3);
 
@@ -53,7 +51,6 @@ void SoundPlayerStart()
 	DMA_Cmd(DMA1_Channel3 , ENABLE);
 	DAC_Cmd(DAC_Channel_1 , ENABLE);
 	DAC_DMACmd(DAC_Channel_1 , ENABLE);
-	IsPlaying = 1;
 }
 
 

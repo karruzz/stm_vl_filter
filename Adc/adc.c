@@ -8,6 +8,9 @@
 
 #include "adc.h"
 
+#define WINDOW 4
+#define DEVISOR 4
+
 void SoundRecorderInit()
 {
 	// adc init
@@ -62,7 +65,7 @@ void ADC1_IRQHandler(void)
 
     if (ADC_GetITStatus(ADC1, ADC_IT_EOC)) {
     	InBuf[Sample] = ADC_GetConversionValue(ADC1);
-    	Sample = (++Sample) % AUDIOBUFSIZE;
+    	Sample = (++Sample) & (AUDIOBUFSIZE - 1);
         ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
     };
 
