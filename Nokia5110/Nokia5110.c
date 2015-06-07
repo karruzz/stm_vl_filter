@@ -125,13 +125,6 @@ static void lcdwrite(enum writeMode mode, char message)
 	  GPIO_WriteBit(GPIOB, SOFT_SS, Bit_SET);
 }
 
-static void fastlcdwrite(char message)
-{
-	SPI_I2S_SendData(SPI , message);
-	while (SPI_I2S_GetFlagStatus(SPI , SPI_I2S_FLAG_RXNE) == RESET);
-	SPI_I2S_ReceiveData(SPI);
-}
-
 void Nokia5110Init(void)
 {
 	spiInit(SPI);
@@ -186,18 +179,22 @@ void Nokia5110Clear(void)
   Nokia5110SetCursor(0, 0);
 }
 
-void Nokia5110DrawHist(const char *points)
+void Nokia5110DrawHist(const uint8_t *points)
 {
-  int i;
-  Nokia5110SetCursor(0, 0);
+	int i = 0;
+	Nokia5110SetCursor(0, 0);
 
-  GPIO_WriteBit(GPIOB, SOFT_SS, Bit_RESET);
-  GPIO_WriteBit(GPIOB, DC_PIN, Bit_SET);
+	GPIO_WriteBit(GPIOB, SOFT_SS, Bit_RESET);
+	GPIO_WriteBit(GPIOB, DC_PIN, Bit_SET);
 
-  for(i = 0; i < MAX_Y_OCTETS * MAX_X; i++)
-	  fastlcdwrite(points[i]);
+	while (i < MAX_Y_OCTETS * MAX_X)
+	{
+		SPI_I2S_SendData(SPI , points[i++]);
+		while (SPI_I2S_GetFlagStatus(SPI , SPI_I2S_FLAG_RXNE) == RESET);
+		SPI_I2S_ReceiveData(SPI);
+	}
 
-  GPIO_WriteBit(GPIOB, SOFT_SS, Bit_SET);
+	GPIO_WriteBit(GPIOB, SOFT_SS, Bit_SET);
 }
 
 void Nokia5110DrawImage(const char *ptr)

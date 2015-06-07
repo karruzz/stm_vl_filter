@@ -44,36 +44,24 @@ char hist[MAX_X];
 #define WINDOW 8
 #define DEVIDER (AUDIOBUFSIZE - 1)
 
-int16_t factors[] = { 2, 2, 2, 2, 2, 2, 2, 2 };
+int16_t h[] = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
 
-static inline uint16_t FIRFilter1(int position)
-{
-	int i = 0;
-	int sum = 0;
-	while (i < WINDOW)
-	{
-		sum += InBuf[(position--) & DEVIDER] * factors[i++];
-	}
+extern unsigned int FIR(uint16_t* inbuff, int16_t* hbuf,int position);
 
-	return sum >> 4;
-}
-
-static char boundaryHist[MAX_X];
-static char outBuffer[MAX_X * MAX_Y_OCTETS];
-
-static inline void Nokia5110PrepareHist(const char *pointY)
+static uint8_t outBuffer[MAX_X * MAX_Y_OCTETS];
+static inline void Nokia5110PrepareHist(const uint8_t *pointY)
 {
 	int i;
 	int j;
+	int boundary;
 
-	for(i = 0; i < MAX_X; i++)
-		boundaryHist[i] = MAX_Y / 8 - 1 - pointY[i] / 8;
-
-	for(i = 0; i < MAX_Y_OCTETS; i++)
-		for(j = 0; j < MAX_X; j++){
+	for(j = 0; j < MAX_X; j++)
+	{
+		boundary = MAX_Y_OCTETS - 1 - (pointY[j] >> 3);
+		for(i = 0; i < MAX_Y_OCTETS; i++)
 		{
-			if(i < boundaryHist[j]) outBuffer[j+i*MAX_X] = 0;
-			else if (i == boundaryHist[j]) outBuffer[j+i*MAX_X] = ~(0xFF >> (pointY[j] % 8));
+			if(i < boundary) outBuffer[j+i*MAX_X] = 0;
+			else if (i == boundary) outBuffer[j+i*MAX_X] = ~(0xFF >> (pointY[j] & 7));
 			else outBuffer[j+i*MAX_X] = 0xFF;
 		}
 	}
@@ -81,8 +69,6 @@ static inline void Nokia5110PrepareHist(const char *pointY)
 
 int main(void)
 {
-//	NVIC_PriorityGroupConfig( NVIC_PriorityGroup_4 );
-
 	int i;
 	unsigned int filteringSample = 0;
 	int displayUpdateCounter;
@@ -106,8 +92,8 @@ int main(void)
 	while(1) {
 		while (((Sample - filteringSample) & DEVIDER) > 10)
 		{
-			OutBuf[filteringSample] = FIRFilter1(filteringSample);
-			OutBuf[filteringSample] = InBuf[filteringSample];
+			OutBuf[filteringSample] = FIR(InBuf, h, filteringSample);
+		//	OutBuf[filteringSample] = InBuf[filteringSample];
 			filteringSample = (++filteringSample) & DEVIDER;
 		}
 
@@ -117,18 +103,31 @@ int main(void)
 
 		if (FFTReady == FALSE)
 		{
+			i = 0;
 			x = filteringSample;
-			while (FFTIsFull == FALSE) {
-				FFTAdd(OutBuf[x] >> 4);
+			while (i++ < FFTSIZE) {
+				FFTAdd(OutBuf[x]);
 				x = (--x) & DEVIDER;
 			}
 			FFTCalculate();
 			FFTReady = TRUE;
 			continue;
+
+/*			i = 0;
+			x = filteringSample;
+			while (i < 128) {
+				Magnitude[i++] = OutBuf[x] >> 7;
+				x = (--x) & DEVIDER;
+			}
+			FFTReady = TRUE;
+			FFTIsFull = FALSE;
+			FFTsample = 0;
+			continue;*/
 		}
 
 		if (HistReady == FALSE)
 		{
+			FFTComputeMagnitude();
 			Nokia5110PrepareHist(Magnitude);
 			HistReady = TRUE;
 			continue;

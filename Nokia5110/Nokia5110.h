@@ -49,7 +49,7 @@ void Nokia5110Clear(void);
 
 // 48x84 bitmap image
 void Nokia5110DrawImage(const char *ptr);
-void Nokia5110DrawHist(const char *points);
+void Nokia5110DrawHist(const uint8_t *points);
 
 void Nokia5110OutChar(unsigned char data);
 void Nokia5110OutString(char *ptr);
