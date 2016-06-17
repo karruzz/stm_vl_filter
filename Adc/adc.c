@@ -29,7 +29,7 @@ void SoundRecorderInit()
 
     GPIO_InitTypeDef  GPIO_InitStructureAdc;
 	GPIO_StructInit (&GPIO_InitStructureAdc);
-    GPIO_InitStructureAdc.GPIO_Pin =  GPIO_Pin_0;
+    GPIO_InitStructureAdc.GPIO_Pin =  GPIO_Pin_2;
     GPIO_InitStructureAdc.GPIO_Mode = GPIO_Mode_AIN;
     GPIO_Init(GPIOA, &GPIO_InitStructureAdc);
 
@@ -44,7 +44,7 @@ void SoundRecorderInit()
 	ADC_Init(ADC1 , &ADC_InitStructure);
 
 	// Configure ADC_IN6
-	ADC_RegularChannelConfig(ADC1 , ADC_Channel_0 , 1, ADC_SampleTime_55Cycles5);
+	ADC_RegularChannelConfig(ADC1 , ADC_Channel_2 , 1, ADC_SampleTime_55Cycles5);
 	// Enable ADC
 	ADC_ITConfig(ADC1 , ADC_IT_EOC , ENABLE);
 	ADC_ExternalTrigConvCmd(ADC1 , ENABLE);

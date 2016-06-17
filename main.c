@@ -16,35 +16,19 @@
 #include "dac.h"
 #include "FFT.h"
 
-/*
-#include "FreeRTOS.h"
-#include "task.h"
-*/
-//#include "queue.h"
-
 int audioplayerHalf;
 int audioplayerWhole;
 
 char hist[MAX_X];
 
-/*void Filtering(void *pvParameters )
-{
-	int filteringSample = 0;
-    for (;;) {
-		while (Sample - filteringSample > 3 || (filteringSample > Sample && Sample + AUDIOBUFSIZE - filteringSample > 3))
-		{
-			//OutBuf[filteringSample] = FilterLP(InBuf[filteringSample]);
-			OutBuf[filteringSample] = InBuf[filteringSample];
-			filteringSample = (++filteringSample) % AUDIOBUFSIZE;
-	    	if (filteringSample > AUDIOBUFSIZE / 2) RecordingHalf = HIGH; else RecordingHalf = LOW;
-		}
-    }
-}*/
-
 #define WINDOW 8
 #define DEVIDER (AUDIOBUFSIZE - 1)
 
-int16_t h[] = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+//int16_t h[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+//вч, делить на 128
+//int16_t h[] = { 0, 0, 0, 1, 3, -1, -16, -33, 86, -28, -12, -1, 1, 0, 0, 0};
+//нч, делить на 128
+int16_t h[] = { 0, 0, 0, 0, 3, 8, 16, 22, 23, 19, 12, 5, 1, 0, 0, 0};
 
 extern unsigned int FIR(uint16_t* inbuff, int16_t* hbuf,int position);
 
@@ -67,6 +51,24 @@ static inline void Nokia5110PrepareHist(const uint8_t *pointY)
 	}
 }
 
+static void ButtonLedInit()
+{
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC , ENABLE);
+
+    GPIO_InitTypeDef  GPIO_InitStructureA;
+	GPIO_StructInit (&GPIO_InitStructureA);
+	GPIO_InitStructureA.GPIO_Pin =  GPIO_Pin_0;
+	GPIO_InitStructureA.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(GPIOA, &GPIO_InitStructureA);
+
+    GPIO_InitTypeDef  GPIO_InitStructure;
+	GPIO_StructInit (&GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+}
+
 int main(void)
 {
 	int i;
@@ -75,7 +77,9 @@ int main(void)
 	uint16_t x;
 	Boolean FFTReady = FALSE;
 	Boolean HistReady = FALSE;
+	Boolean IsFilterOn = FALSE;
 
+	ButtonLedInit();
 	Nokia5110Init();
 
 	SoundRecorderInit();
@@ -85,21 +89,42 @@ int main(void)
 	while (Sample < PLAYERDELAY);
 	SoundPlayerStart();
 
-/*    xTaskCreate(Filtering, (signed char*)"filtering", 500, NULL, tskIDLE_PRIORITY + 4, NULL);
-
-    vTaskStartScheduler();*/
-
 	while(1) {
 		while (((Sample - filteringSample) & DEVIDER) > 10)
 		{
-			OutBuf[filteringSample] = FIR(InBuf, h, filteringSample);
-		//	OutBuf[filteringSample] = InBuf[filteringSample];
+			OutBuf[filteringSample] = IsFilterOn == TRUE ? FIR(InBuf, h, filteringSample)
+														 : InBuf[filteringSample];
 			filteringSample = (++filteringSample) & DEVIDER;
 		}
 
-/*		displayUpdateCounter++;
-		if (displayUpdateCounter < 5000) continue;
-		displayUpdateCounter = 0;*/
+
+		if (GPIO_ReadInputDataBit(GPIOA , GPIO_Pin_0) > 0)
+		{
+			i = 100;
+			while (i-- > 0) asm("nop");
+			if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) > 0)
+			{
+				if (IsFilterOn == TRUE)
+				{
+					IsFilterOn = FALSE;
+					GPIO_ResetBits(GPIOC, GPIO_Pin_8);
+				}
+				else
+				{
+					IsFilterOn = TRUE;
+					GPIO_SetBits(GPIOC, GPIO_Pin_8);
+				}
+			}
+			continue;
+		}
+
+
+		if (IsFilterOn == FALSE)
+		{
+			displayUpdateCounter++;
+			if (displayUpdateCounter < 2000) continue;
+			displayUpdateCounter = 0;
+		}
 
 		if (FFTReady == FALSE)
 		{
@@ -112,17 +137,6 @@ int main(void)
 			FFTCalculate();
 			FFTReady = TRUE;
 			continue;
-
-/*			i = 0;
-			x = filteringSample;
-			while (i < 128) {
-				Magnitude[i++] = OutBuf[x] >> 7;
-				x = (--x) & DEVIDER;
-			}
-			FFTReady = TRUE;
-			FFTIsFull = FALSE;
-			FFTsample = 0;
-			continue;*/
 		}
 
 		if (HistReady == FALSE)

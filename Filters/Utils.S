@@ -39,14 +39,14 @@ loop2:
 	ldrh R5, [R0, R2]
 	sub R2, #2
 	ubfx R2, R2, #0, #11
-	ldrh R6, [R1, R3]
+	ldrsh R6, [R1, R3]
 	mul R5, R5, R6
 	add R4, R5
 	sub R3, #2
 	b loop2
 loop2exit:
-	lsr R0, R4, #5
+	lsr R0, R4, #7
     pop {R6}
     pop {R5}
-    pop {R4}
+	pop {R4}
     bx LR
