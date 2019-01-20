@@ -8,10 +8,16 @@
 
 #include "adc.h"
 
+#include "misc.h"
+#include "stm32f10x_adc.h"
+#include "stm32f10x_gpio.h"
+#include "stm32f10x_rcc.h"
+
 #define WINDOW 4
 #define DEVISOR 4
 
-void SoundRecorderInit()
+// adc pin PA2
+void sound_recorder_init()
 {
 	// adc init
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 | RCC_APB2Periph_GPIOA , ENABLE);
@@ -59,15 +65,22 @@ void SoundRecorderInit()
 	while(ADC_GetCalibrationStatus(ADC1));
 }
 
+static int a, b;
+
+static uint16_t adc_current_sample;
+
 void ADC1_IRQHandler(void)
 {
 	//portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-
-    if (ADC_GetITStatus(ADC1, ADC_IT_EOC)) {
-    	InBuf[Sample] = ADC_GetConversionValue(ADC1);
-    	Sample = (++Sample) & (AUDIOBUFSIZE - 1);
-        ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
-    };
+	if (ADC_GetITStatus(ADC1, ADC_IT_EOC)) {
+		input_buffer[adc_current_sample] = ADC_GetConversionValue(ADC1) << 3;
+		adc_current_sample = (++adc_current_sample) & (AUDIOBUFSIZE - 1);
+		ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
+	};
 
 	//portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+}
+
+uint16_t get_current_sample(){
+	return adc_current_sample;
 }

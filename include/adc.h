@@ -12,14 +12,12 @@
 #include "stm32f10x.h"
 #include "config.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
+// #include "FreeRTOS.h"
+// #include "task.h"
 
-uint16_t InBuf [AUDIOBUFSIZE];
+uint16_t input_buffer [AUDIOBUFSIZE];
 
-unsigned int Sample;
-
-void SoundRecorderInit(void);
-uint16_t FIRFilter(int position);
+uint16_t get_current_sample();
+void sound_recorder_init(void);
 
 #endif /* ADC_ADC_H_ */

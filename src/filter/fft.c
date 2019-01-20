@@ -7,7 +7,7 @@
  */
 
 
-#include "FFT.h"
+#include "fft.h"
 
 int SR[] = { -256, 0, 181, 236, 251, 254, 255 };
 int SI[] = { 0, -256, -181, -97, -49, -25, -12};
@@ -62,6 +62,6 @@ void FFTComputeMagnitude()
 {
 	for (int j = 0; j < FFTSIZE>>1; j++)
 	{
-		Magnitude[j] = Sqrt2(ReSignal[j]*ReSignal[j] + ImSignal[j]*ImSignal[j]) >> 7;
+		Magnitude[j] = Sqrt2(Sqrt2(ReSignal[j]*ReSignal[j] + ImSignal[j]*ImSignal[j]));
 	}
 }

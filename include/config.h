@@ -9,11 +9,9 @@
 #define CONFIG_H_
 
 #define AUDIOBUFSIZE 1024
-#define PLAYERDELAY 512
+#define PLAYERDELAY (AUDIOBUFSIZE >> 1)
 
 #define FFTSIZE 128
 #define FFTORDER 7
-
-typedef enum { TRUE = 0, FALSE } Boolean;
 
 #endif /* CONFIG_H_ */

@@ -8,4 +8,6 @@
 
 #include "stm32f10x.h"
 
-void Timer44kHzInit(void);
+// 44kHz
+void timer_init(void);
+

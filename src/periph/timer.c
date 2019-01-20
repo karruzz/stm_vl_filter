@@ -6,9 +6,13 @@
  *     License: GNU GPL 3
  */
 
-#include "Timer44kHz.h"
+#include "timer.h"
 
-void Timer44kHzInit()
+#include "stm32f10x_rcc.h"
+#include "stm32f10x_tim.h"
+
+// 44khz
+void timer_init()
 {
 	// enable timer clock
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
@@ -23,8 +27,8 @@ void Timer44kHzInit()
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM3 , &TIM_TimeBaseStructure);
 
-    // выход синхронизации
-    TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update);
+	TIM_SelectOutputTrigger(TIM3, TIM_TRGOSource_Update);
 	// Enable Timer
 	TIM_Cmd(TIM3 , ENABLE);
 }
+

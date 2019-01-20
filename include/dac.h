@@ -12,9 +12,9 @@
 #include "stm32f10x.h"
 #include "config.h"
 
-uint16_t OutBuf [AUDIOBUFSIZE];
+uint16_t output_buffer [AUDIOBUFSIZE];
 
-void SoundPlayerInit(void);
-void SoundPlayerStart(void);
+void sound_player_init(void);
+void sound_player_start(void);
 
 #endif /* DAC_DAC_H_ */

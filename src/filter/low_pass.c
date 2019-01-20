@@ -5,7 +5,7 @@
  *      Author: karruzz
  *     License: GNU GPL 3
  */
-#include "LowPass.h"
+#include "low_pass.h"
 
 /*
 static const int A0 = 260;
